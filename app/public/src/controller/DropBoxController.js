@@ -6,9 +6,8 @@ class DropBoxController {
       this.progressBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg')
       this.nameFileEl = this.snackModalEl.querySelector('.filename')
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft')
-      this.listFilesEl = document.querySelector('#list-of-files-and-directories');  
-
-
+      this.listFilesEl = document.querySelector('#list-of-files-and-directories')
+  
       this.connectFirebase();
       this.initEvents();
       this.readFiles();
@@ -28,6 +27,7 @@ class DropBoxController {
       
       firebase.initializeApp(firebaseConfig);
     }
+    
   
     initEvents() {
       this.btnSendFileEl.addEventListener("click", (event) => {
@@ -61,7 +61,7 @@ class DropBoxController {
     }
   
     getFirebaseRef() {
-      return firebase.database().ref('files');
+      return firebase.database().ref('files')
     }
   
     modalShow(show = true) {
@@ -237,7 +237,8 @@ class DropBoxController {
             </svg>
           `;
           break;
-  
+        
+        case 'arquivo/png':
         case 'image/jpeg':
         case 'image/jpg':
         case 'image/png':
@@ -307,39 +308,84 @@ class DropBoxController {
     }
   
     getFileView(file, key) {
+        //erro undefined
+      let li = document.createElement('li')
+  
+      li.dataset.key = key
+  
+      li.innerHTML = `
       
-        let li = document.createElement('li');
-
-        li.dataset.key = key;
-
-        li.innerHTML = `
-       
         ${this.getFileIconView(file)}
-        <div class="name text-center">${file.name}sss</div>
-      
-    `
-      
-        return li;
+        <div class="name text-center">${file.name}</div>
+        
+      ` 
+      this.initEventsLi(li)
+  
+      return li;
     }
   
-    readFiles(){
+    readFiles() {
+      this.getFirebaseRef().on('value', snapshot => {
+        this.listFilesEl.innerHTML = '';
+        snapshot.forEach(snapshotItem => {
+          let key = snapshotItem.key;
+          let data = snapshotItem.val()
+          
+          this.listFilesEl.appendChild(this.getFileView(data, key))
+        })
+      })
+    }
+  
+    initEventsLi(li) {
+      li.addEventListener('click', e => {
 
-        this.getFirebaseRef().on('value', snapshot =>{
+        if (e.shiftKey){
 
-            this.listFilesEl.innerHTML = "";
+            let firstLi = this.listFilesEl.querySelector('.selected');
 
-            snapshot.forEach(snapshotItem =>{
+            if(firstLi) {
 
-                let key = snapshotItem.key;
-                let data = snapshotItem.val();
+                let indexStart;
+                let indexEnd;
+                let lis = li.parentElement.childNodes;
 
-                this.listFilesEl.appendChild(this.getFileView(data, key));
+                lis.forEach((el, index)=>{
+
+                    if (firstLi === el) indexStart = index;
+                    if (li === el) indexEnd = index;
+
+                });
+
+                let index = [indexStart, indexEnd].sort();
+
+                lis.forEach((el, i)=>{
+
+                    if(i >= index[0] && i <= index [1]){
+                        el.classList.add('selected');
+
+                    }
+
+                });
+
+                return true;
+
+            }
+
+        }
+
+        if(!e.ctrlKey){
+
+            this.listFilesEl.querySelectorAll('li.selected').forEach(el=>{
+
+                el.classList.remove('selected');
 
             });
 
-        });
+        }
 
+        li.classList.toggle('selected')
+      })
     }
-
+  
   }
   
