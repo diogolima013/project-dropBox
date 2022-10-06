@@ -1,5 +1,8 @@
 class DropBoxController {
   constructor() {
+    
+    this.currentFolder = ['hcode'];
+    
     this.onselectionchange = new Event("selectionchange");
 
     this.btnSendFileEl = document.querySelector("#btn-send-file");
@@ -58,6 +61,23 @@ class DropBoxController {
   }
 
   initEvents() {
+   
+    this.btnNewFolder.addEventListener('click', e=>{
+
+      let name = prompt('Nome da nova pasta:');
+
+      if(name){
+
+        this.getFirebaseRef().push().set({
+          name,
+          type:'folder',
+          path:this.currentFolder.join('/')
+        });
+
+      }
+
+    });
+
     this.btnDelete.addEventListener("click", (e) => {
       this.removeTask()
         .then((responses) => {
@@ -69,7 +89,7 @@ class DropBoxController {
             }
           })
 
-          console.log("removido");
+          console.log("responses");
         })
         .catch((err) => {
           console.log(err);
@@ -211,7 +231,7 @@ class DropBoxController {
 
     this.progressBarEl.style.width = `${porcent}%`;
 
-    this.nameFileEl.innerHTML = file.originalFilename;
+    this.nameFileEl.innerHTML = file.name;
     this.timeleftEl.innerHTML = this.formatTimeToHuman(timeleft);
   }
 
@@ -236,7 +256,8 @@ class DropBoxController {
   }
 
   getFileIconView(file) {
-    switch (file.mimetype) {
+    
+    switch (file.type) {
       case "folder":
         return `
         <svg width="160" height="160" viewBox="0 0 160 160" class="mc-icon-template-content tile__preview tile__preview--icon">
@@ -247,6 +268,9 @@ class DropBoxController {
             </g>
         </svg>`;
         break;
+    }
+
+    switch(file.mimetype){
 
       case "application/pdf":
         return `
@@ -401,6 +425,22 @@ class DropBoxController {
 
   getFileView(file, key) {
     let li = document.createElement("li");
+    let l1 = document.createElement('li');
+
+    if(file.type) {
+      l1.dataset.key = key;
+      l1.dataset.file = JSON.stringify(file);
+
+      l1.innerHTML = `
+      ${this.getFileIconView(file)}
+      <div class="name text-center">${file.name}</div>
+      `
+      this.initEventsLi(l1);
+
+      return l1;
+    }
+
+
 
     li.dataset.key = key;
     li.dataset.file = JSON.stringify(file);

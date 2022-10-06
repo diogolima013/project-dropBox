@@ -1,7 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var formidable = require('formidable')
-//var fs = require('fs')
+var fs = require('fs')
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -16,16 +16,15 @@ router.delete('/file', (req, res) => {
 
   form.parse(req, (err, fields, files) => {
 
+
           res.json({
             fields
-            })
+          });
 
         });
 
       });
 
-    
-    
 
 router.post('/upload', (req, res) => {
 
